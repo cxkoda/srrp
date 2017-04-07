@@ -29,10 +29,10 @@ class SRHDRiemannSolver:
 
 
     def rho_isentrope(self, p, K):
-        return (p/K)**(1./self.gamma)
+        return np.power(p/K, 1./self.gamma)
 
     def get_isentrope_K(self, rho, p):
-        return p / (rho ** self.gamma)
+        return p / np.power(rho, self.gamma)
 
     def get_h_taub(self, rhoA, pA, hA, pB):
         c_2 = (1. + (pA - pB) / (pB * self.sigma))
@@ -59,10 +59,10 @@ class SRHDRiemannSolver:
 
     def uxb_shock(self, rhoA, uxA, utA, pA, pB, WA, hA, sign=+1):
         J_sqr = self.get_J_sqr(rhoA, pA, hA, pB)
-        J = np.sqrt(np.abs(J_sqr))
+        J = sign*np.sqrt(np.abs(J_sqr))
         Vs = self.get_Vs(rhoA, uxA, WA*WA, J, J_sqr, sign=sign)
         Ws = self.W(Vs)
-        return (hA * WA * uxA + sign * Ws * (pB - pA)/J) / (hA * WA + (pB - pA)*(sign * Ws * uxA / J + 1/(rhoA * WA)))
+        return (hA * WA * uxA + Ws * (pB - pA)/J) / (hA * WA + (pB - pA)*(Ws * uxA / J + 1/(rhoA * WA)))
 
     def uxb_raref(self, rhoA, uxA, utA, pA, pB, WA, hA, sign=+1):
         A = hA * WA * utA
