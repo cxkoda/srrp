@@ -166,6 +166,7 @@ class SRHDRiemannSolver:
         return self.relative_u(v1c[0], v6c[0])
 
     def __init__(self, rhoL, uxL, utL, pL, rhoR, uxR, utR, pR, gamma, x0=0.5, verbose=False):
+        self.solution_type = None
         uL = np.sqrt(uxL**2 + utL**2)
         uR = np.sqrt(uxR**2 + utR**2)
 
@@ -220,6 +221,7 @@ class SRHDRiemannSolver:
         eps = 1e-15
 
         if du_0 <= self.get_du_limit_RR():
+            self.solution_type = 'RR*'
             if self.verbose:
                 print('Rarefaction-Rarefaction with Vacuum')
             p_star = 0
@@ -227,6 +229,7 @@ class SRHDRiemannSolver:
             solution = RareRareSolution
 
         elif du_0 <= self.get_du_limit_RS():
+            self.solution_type = 'RR'
             if self.verbose:
                 print('Rarefaction-Rarefaction')
             p_min = (self.p6 + eps) * eps
@@ -236,6 +239,7 @@ class SRHDRiemannSolver:
             solution = RareRareSolution
 
         elif du_0 <= self.get_du_limit_SS():
+            self.solution_type = 'RS'
             if self.verbose:
                 if self.reversed:
                     print('Shock-Rarefaction')
@@ -248,6 +252,7 @@ class SRHDRiemannSolver:
             solution = RareShockSolution
 
         else:
+            self.solution_type = 'SS'
             if self.verbose:
                 print('Shock-Shock')
             p_star_guess = 1.1*self.p1
