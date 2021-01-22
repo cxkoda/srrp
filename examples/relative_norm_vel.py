@@ -1,4 +1,4 @@
-from libSRHD import SRHDRiemannSolver
+from srrp import SRHDRiemannSolver
 import matplotlib.pyplot as plt
 import numpy as np
 

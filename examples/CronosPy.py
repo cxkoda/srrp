@@ -1,4 +1,4 @@
-from .SRHDRiemannSolver import SRHDRiemannSolver
+from srrp import SRHDRiemannSolver
 
 class SRHDRiemannSolverCronosPy:
     '''
