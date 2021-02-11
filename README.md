@@ -1,5 +1,7 @@
 # Special Relativistic Riemann Problem Solver
-[![PyPI version](https://badge.fury.io/py/srrp.svg)](https://pypi.org/project/srrp)
+[![PyPI version shields.io](https://img.shields.io/pypi/v/srrp.svg)](https://pypi.org/project/srrp)
+[![PyPI license](https://img.shields.io/pypi/l/srrp.svg)](https://pypi.org/project/srrp)
+[![PyPI pyversions](https://img.shields.io/pypi/pyversions/srrp.svg)](https://pypi.org/project/srrp)
 [![Test](https://github.com/cxkoda/srrp/workflows/Test/badge.svg)](https://github.com/cxkoda/srrp/actions)
 
 
