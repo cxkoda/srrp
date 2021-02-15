@@ -68,7 +68,6 @@ class Wavefan:
     def getRegionIndex(self, xi):
         return np.digitize(xi, self.regionBoundaries) - 1
 
-
     def __getState(self, xi):
         idx = self.getRegionIndex(xi)
         return self.regionStates[idx](xi)
@@ -84,7 +83,6 @@ class Wavefan:
             return statesAggregated
         except:
             return states
-
 
     def __str__(self):
         tmp = [str(self.states[0])]

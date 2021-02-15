@@ -1,4 +1,3 @@
-import numpy as np
 from .State import State
 from scipy import integrate, optimize
 from .EquationOfState import PolytropicEquationOfState, IdealEquationOfState

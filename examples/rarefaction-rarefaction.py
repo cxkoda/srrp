@@ -9,7 +9,7 @@ DOI: 10.1017/S0022112002003506
 '''
 
 if __name__ == '__main__':
-    gamma = 5/3
+    gamma = 5 / 3
     stateL = srrp.State(rho=1, pressure=1, vx=0.0, vt=0.999)
     stateR = srrp.State(rho=0.125, pressure=0.1, vx=0.5, vt=0)
     xs = np.linspace(0, 1, 500)

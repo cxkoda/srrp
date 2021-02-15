@@ -154,7 +154,7 @@ class Solver:
             self.solution_type = 'RR'
             p_min = (self.state6.pressure + eps) * eps
             p_max = self.state1.pressure
-            assert(p_min < p_max)
+            assert (p_min < p_max)
             p_star = opt.brentq(lambda p: self.get_du_RR(p) - du_0, p_min, p_max)
             polytrope = PolytropicEquationOfState.fromState(self.state6, self.eos.gamma)
             ux_star = Rarefaction.computeVxb(self.state6, p_star, polytrope, sign=+1)
@@ -165,7 +165,7 @@ class Solver:
             self.solution_type = 'RS'
             p_min = self.state6.pressure + eps
             p_max = self.state1.pressure
-            assert(p_min < p_max)
+            assert (p_min < p_max)
             p_star = opt.brentq(lambda p: self.get_du_RS(p) - du_0, p_min, p_max)
             ux_star = Shock.computeVxb(self.state6, p_star, self.eos, sign=+1)
             solution = getWavefan(self.state1, self.state6, ux_star, p_star, self.eos, Rarefaction, Shock,

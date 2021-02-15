@@ -17,7 +17,7 @@ class State:
 
     def __eq__(self, other):
         return (self.rho == other.rho) * (self.vx == other.vx) * (self.vt == other.vt) * (
-                    self.pressure == other.pressure)
+                self.pressure == other.pressure)
 
     def __str__(self):
         return f'State: rho={self.rho:.3f}, vx={self.vx:.3f}, vt={self.vt:.3f}, pressure={self.pressure:.3f}'
