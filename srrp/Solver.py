@@ -4,7 +4,7 @@ import numpy as np
 
 from .Shock import Shock
 from .Rarefaction import Rarefaction
-from .EquationOfState import IdealEquationOfState, PolytropicEquationOfState
+from .EquationOfState import IdealEquationOfState, EntropyConservation
 from .Util import *
 
 from .ContactDiscontinuity import ContactDiscontinuity
@@ -12,7 +12,7 @@ from .State import State
 from .Wavefan import Wavefan
 
 
-def getWavefan(state1, state6, cdSpeed, cdPressure, eos: IdealEquationOfState, waveLType, waveRtype, reversed=False):
+def getWavefan(state1: State, state6: State, cdSpeed, cdPressure, eos: IdealEquationOfState, waveLType, waveRtype, reversed=False):
     waveL = waveLType.fromStateAheadAndSpeedPressureBehind(state1, cdSpeed, cdPressure, eos, sign=-1)
     state3 = waveL.stateB
     waveR = waveRtype.fromStateAheadAndSpeedPressureBehind(state6, cdSpeed, cdPressure, eos, sign=+1)
@@ -44,18 +44,18 @@ class Solver:
         return relativeSpeed(v13, v64)
 
     def get_du_RS(self, p_star):
-        polytrope1 = PolytropicEquationOfState.fromState(self.state1, self.eos.gamma)
-        ux3 = Rarefaction.computeVxb(self.state1, p_star, polytrope1, sign=-1)
+        isentrope1 = EntropyConservation.fromState(self.state1, self.eos)
+        ux3 = Rarefaction.computeVxb(self.state1, p_star, isentrope1, sign=-1)
         ux4 = Shock.computeVxb(self.state6, p_star, self.eos, sign=+1)
         v13 = relativeSpeed(self.state1.vx, ux3)
         v64 = relativeSpeed(self.state6.vx, ux4)
         return relativeSpeed(v13, v64)
 
     def get_du_RR(self, p_star):
-        polytrope1 = PolytropicEquationOfState.fromState(self.state1, self.eos.gamma)
-        polytrope6 = PolytropicEquationOfState.fromState(self.state6, self.eos.gamma)
-        ux3 = Rarefaction.computeVxb(self.state1, p_star, polytrope1, sign=-1)
-        ux4 = Rarefaction.computeVxb(self.state6, p_star, polytrope6, sign=+1)
+        isentrope1 = EntropyConservation.fromState(self.state1, self.eos)
+        isentrope6 = EntropyConservation.fromState(self.state6, self.eos)
+        ux3 = Rarefaction.computeVxb(self.state1, p_star, isentrope1, sign=-1)
+        ux4 = Rarefaction.computeVxb(self.state6, p_star, isentrope6, sign=+1)
         v13 = relativeSpeed(self.state1.vx, ux3)
         v64 = relativeSpeed(self.state6.vx, ux4)
         return relativeSpeed(v13, v64)
@@ -85,12 +85,12 @@ class Solver:
 
     def get_du_limit_RS(self):
         A1_sqr = computeA(self.state1, self.eos) ** 2
-        polytrope1 = PolytropicEquationOfState.fromState(self.state1, self.eos.gamma)
+        isentrope1 = EntropyConservation.fromState(self.state1, self.eos)
 
         def integrand(_pressure):
-            rho = polytrope1.computeRho(_pressure)
-            h = polytrope1.computeEnthalpy(_pressure, rho=rho)
-            cs = polytrope1.computeSpeedOfSound(_pressure, rho=rho, h=h)
+            rho = isentrope1.computeRho(_pressure)
+            h = isentrope1.computeEnthalpy(_pressure, rho=rho)
+            cs = isentrope1.computeSpeedOfSound(_pressure, rho=rho, h=h)
             h_sqr = h ** 2
             cs_sqr = cs ** 2
             return np.sqrt(h_sqr + A1_sqr * (1 - cs_sqr)) / ((h_sqr + A1_sqr) * rho * cs)
@@ -102,21 +102,21 @@ class Solver:
     def get_du_limit_RR(self):
         A1_sqr = computeA(self.state1, self.eos) ** 2
         A6_sqr = computeA(self.state6, self.eos) ** 2
-        polytrope1 = PolytropicEquationOfState.fromState(self.state1, self.eos.gamma)
-        polytrope6 = PolytropicEquationOfState.fromState(self.state6, self.eos.gamma)
+        isentrope1 = EntropyConservation.fromState(self.state1, self.eos)
+        isentrope6 = EntropyConservation.fromState(self.state6, self.eos)
 
         def integrand1(_pressure):
-            rho = polytrope1.computeRho(_pressure)
-            h = polytrope1.computeEnthalpy(_pressure, rho=rho)
-            cs = polytrope1.computeSpeedOfSound(_pressure, rho=rho, h=h)
+            rho = isentrope1.computeRho(_pressure)
+            h = isentrope1.computeEnthalpy(_pressure, rho=rho)
+            cs = isentrope1.computeSpeedOfSound(_pressure, rho=rho, h=h)
             h_sqr = h ** 2
             cs_sqr = cs ** 2
             return np.sqrt(h_sqr + A1_sqr * (1 - cs_sqr)) / ((h_sqr + A1_sqr) * rho * cs)
 
         def integrand6(_pressure):
-            rho = polytrope6.computeRho(_pressure)
-            h = polytrope6.computeEnthalpy(_pressure, rho=rho)
-            cs = polytrope6.computeSpeedOfSound(_pressure, rho=rho, h=h)
+            rho = isentrope6.computeRho(_pressure)
+            h = isentrope6.computeEnthalpy(_pressure, rho=rho)
+            cs = isentrope6.computeSpeedOfSound(_pressure, rho=rho, h=h)
             h_sqr = h ** 2
             cs_sqr = cs ** 2
             return np.sqrt(h_sqr + A6_sqr * (1 - cs_sqr)) / ((h_sqr + A6_sqr) * rho * cs)
@@ -156,8 +156,8 @@ class Solver:
             p_max = self.state1.pressure
             assert (p_min < p_max)
             p_star = opt.brentq(lambda p: self.get_du_RR(p) - du_0, p_min, p_max)
-            polytrope = PolytropicEquationOfState.fromState(self.state6, self.eos.gamma)
-            ux_star = Rarefaction.computeVxb(self.state6, p_star, polytrope, sign=+1)
+            isentrope = EntropyConservation.fromState(self.state6, self.eos)
+            ux_star = Rarefaction.computeVxb(self.state6, p_star, isentrope, sign=+1)
             solution = getWavefan(self.state1, self.state6, ux_star, p_star, self.eos, Rarefaction, Rarefaction,
                                   reversed=self.reversed)
 
