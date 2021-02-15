@@ -24,47 +24,52 @@ class PonsTest(unittest.TestCase):
     """
     pressureL = 1e3
     rhoL = 1
-    vxL = 0
+    normalSpeedL = 0
     pressureR = 1e-2
     rhoR = 1
-    vxR = 0
+    normalSpeedR = 0
     gamma = 5 / 3
 
     def getSolution(self):
-        if not hasattr(self, 'solver'):
-            self.solver = srrp.SRHDRiemannSolver(self.rhoL, self.vxL, self.tangentialSpeedL, self.pressureL, self.rhoR,
-                                                 self.vxR,
-                                                 self.tangentialSpeedR,
-                                                 self.pressureR, self.gamma)
-        return self.solver.solution
+        if not hasattr(self, 'solution'):
+            stateL = srrp.State(rho=self.rhoL, vx=self.normalSpeedL, vt=self.tangentialSpeedL,
+                                pressure=self.pressureL)
+            stateR = srrp.State(rho=self.rhoR, vx=self.normalSpeedR, vt=self.tangentialSpeedR,
+                                pressure=self.pressureR)
+            self.solution = srrp.Solver().solve(stateL, stateR, self.gamma)
+
+        return self.solution
 
     def assertMyAlmostEqual(self, expected, actual):
         self.assertAlmostEqual(expected, actual, delta=abs(expected * 1e-2))
 
     def test_primedLeft(self):
         solution = self.getSolution()
-        self.assertMyAlmostEqual(self.rhoLPrime, solution.rho3)
-        self.assertMyAlmostEqual(self.contactDiscontinuityPressure, solution.p3)
-        self.assertMyAlmostEqual(self.contactDiscontinuitySpeed, solution.ux3)
+        self.assertMyAlmostEqual(self.rhoLPrime, solution.states[1].rho)
+        self.assertMyAlmostEqual(self.contactDiscontinuityPressure, solution.states[1].pressure)
+        self.assertMyAlmostEqual(self.contactDiscontinuitySpeed, solution.states[1].vx)
 
     def test_primedRight(self):
         solution = self.getSolution()
-        self.assertMyAlmostEqual(self.rhoRPrime, solution.rho4)
-        self.assertMyAlmostEqual(self.contactDiscontinuityPressure, solution.p4)
-        self.assertMyAlmostEqual(self.contactDiscontinuitySpeed, solution.ux4)
+        self.assertMyAlmostEqual(self.rhoRPrime, solution.states[2].rho)
+        self.assertMyAlmostEqual(self.contactDiscontinuityPressure, solution.states[2].pressure)
+        self.assertMyAlmostEqual(self.contactDiscontinuitySpeed, solution.states[2].vx)
 
     def test_rarefaction(self):
         solution = self.getSolution()
-        self.assertMyAlmostEqual(self.rarefactionHeadSpeed, solution.region_interfaces[0])
-        self.assertMyAlmostEqual(self.rarefactionTailSpeed, solution.region_interfaces[1])
+        self.assertTrue(isinstance(solution.waves[0], srrp.Rarefaction))
+        self.assertMyAlmostEqual(self.rarefactionHeadSpeed, solution.waves[0].speedHead)
+        self.assertMyAlmostEqual(self.rarefactionTailSpeed, solution.waves[0].speedTail)
 
     def test_shock(self):
         solution = self.getSolution()
-        self.assertMyAlmostEqual(self.shockSpeed, solution.region_interfaces[3])
+        self.assertTrue(isinstance(solution.waves[2], srrp.Shock))
+        self.assertMyAlmostEqual(self.shockSpeed, solution.waves[2].speed)
 
     def test_contactDiscontinuity(self):
         solution = self.getSolution()
-        self.assertMyAlmostEqual(self.contactDiscontinuitySpeed, solution.region_interfaces[2])
+        self.assertTrue(isinstance(solution.waves[1], srrp.ContactDiscontinuity))
+        self.assertMyAlmostEqual(self.contactDiscontinuitySpeed, solution.waves[1].speed)
 
 
 if __name__ == '__main__':

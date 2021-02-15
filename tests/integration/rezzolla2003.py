@@ -33,34 +33,52 @@ class RezzollaTest(unittest.TestCase):
     gamma = 5 / 3
 
     def getSolution(self):
-        if not hasattr(self, 'solver'):
-            self.solver = srrp.SRHDRiemannSolver(self.rhoL, self.normalSpeedL, self.tangentialSpeedL, self.pressureL, self.rhoR,
-                                                 self.normalSpeedR, self.tangentialSpeedR, self.pressureR, self.gamma)
-        return self.solver.solution
+        if not hasattr(self, 'solution'):
+            stateL = srrp.State(rho=self.rhoL, vx=self.normalSpeedL, vt=self.tangentialSpeedL,
+                                pressure=self.pressureL)
+            stateR = srrp.State(rho=self.rhoR, vx=self.normalSpeedR, vt=self.tangentialSpeedR,
+                                pressure=self.pressureR)
+            self.solution = srrp.Solver().solve(stateL, stateR, self.gamma)
+
+        return self.solution
 
     def assertMyAlmostEqual(self, expected, actual):
         self.assertAlmostEqual(expected, actual, places=2)
 
     def test_primedLeft(self):
         solution = self.getSolution()
-        self.assertMyAlmostEqual(self.rhoLPrime, solution.rho3)
-        self.assertMyAlmostEqual(self.contactDiscontinuityPressure, solution.p3)
-        self.assertMyAlmostEqual(self.contactDiscontinuitySpeed, solution.ux3)
+        self.assertMyAlmostEqual(self.rhoLPrime, solution.states[1].rho)
+        self.assertMyAlmostEqual(self.contactDiscontinuityPressure, solution.states[1].pressure)
+        self.assertMyAlmostEqual(self.contactDiscontinuitySpeed, solution.states[1].vx)
 
     def test_primedRight(self):
         solution = self.getSolution()
-        self.assertMyAlmostEqual(self.rhoRPrime, solution.rho4)
-        self.assertMyAlmostEqual(self.contactDiscontinuityPressure, solution.p4)
-        self.assertMyAlmostEqual(self.contactDiscontinuitySpeed, solution.ux4)
+        self.assertMyAlmostEqual(self.rhoRPrime, solution.states[2].rho)
+        self.assertMyAlmostEqual(self.contactDiscontinuityPressure, solution.states[2].pressure)
+        self.assertMyAlmostEqual(self.contactDiscontinuitySpeed, solution.states[2].vx)
 
     def test_wavepattern(self):
         solution = self.getSolution()
         if self.wavepattern == '2S':
-            self.assertTrue(isinstance(solution, srrp.ShockShockSolution))
+            self.assertTrue(
+                isinstance(solution.waves[0], srrp.Shock)
+                and isinstance(solution.waves[-1], srrp.Shock)
+            )
         elif self.wavepattern == '2R':
-            self.assertTrue(isinstance(solution, srrp.RareRareSolution))
+            self.assertTrue(
+                isinstance(solution.waves[0], srrp.Rarefaction)
+                and isinstance(solution.waves[-1], srrp.Rarefaction)
+            )
         elif self.wavepattern == 'SR':
-            self.assertTrue(isinstance(solution, srrp.RareShockSolution))
+            self.assertTrue(
+                (
+                        isinstance(solution.waves[0], srrp.Shock)
+                        and isinstance(solution.waves[-1], srrp.Rarefaction)
+                ) or (
+                        isinstance(solution.waves[0], srrp.Rarefaction)
+                        and isinstance(solution.waves[-1], srrp.Shock)
+                )
+            )
         else:
             raise RuntimeError('No such wavepattern!')
 
