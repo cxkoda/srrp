@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="srrp",
-    version="0.0.1",
+    version="1.0.0",
     author="David Huber",
     author_email="dave@yomi.eu",
     description="An exact solver for special relativistic riemann problems",
@@ -19,8 +19,8 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-        'scipy',
-        'numpy'
+        'scipy>=1.4.0',
+        'numpy>=1.17.0'
     ],
     python_requires='>=3.6',
 )
