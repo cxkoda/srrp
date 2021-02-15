@@ -19,7 +19,7 @@ class Shock:
 
     @staticmethod
     def computeTaubAdiabat(stateA, pressureB, eos: IdealEquationOfState):
-        hA = eos.computeEnthalpy(stateA.rho, stateA.pressure)
+        hA = eos.computeEnthalpy(stateA.pressure, stateA.rho)
         c_2 = (1. + (stateA.pressure - pressureB) / (pressureB * eos.sigma))
         c_1 = - (stateA.pressure - pressureB) / (pressureB * eos.sigma)
         c_0 = hA * (stateA.pressure - pressureB) / stateA.rho - hA ** 2
@@ -32,8 +32,8 @@ class Shock:
     @staticmethod
     def computeJ(stateA, stateB, eos: IdealEquationOfState):
         return np.sqrt((stateB.pressure - stateA.pressure) / (
-                eos.computeEnthalpy(stateA.rho, stateA.pressure) / stateA.rho
-                - eos.computeEnthalpy(stateB.rho, stateB.pressure) / stateB.rho))
+                eos.computeEnthalpy(stateA.pressure, stateA.rho) / stateA.rho
+                - eos.computeEnthalpy(stateB.pressure, stateB.rho) / stateB.rho))
 
     @staticmethod
     def computeShockSpeed(stateA, J, sign):
@@ -42,7 +42,7 @@ class Shock:
 
     # @staticmethod
     # def computeJ_sqr(stateA, pressureB, eos: IdealEquationOfState):
-    #     hA = eos.computeEnthalpy(stateA.rho, stateA.pressure)
+    #     hA = eos.computeEnthalpy(stateA.pressure, stateA.rho)
     #     hB = Shock.computeTaubAdiabat(stateA, pressureB, eos)
     #     return - eos.sigma * (stateA.pressure - pressureB) / (
     #             hA * (hA - 1.) / stateA.pressure - hB * (hB - 1.) / pressureB)
@@ -54,13 +54,13 @@ class Shock:
 
     @staticmethod
     def computeVxb(stateA, pressureB, eos, sign):
-        hA = eos.computeEnthalpy(stateA.rho, stateA.pressure)
+        hA = eos.computeEnthalpy(stateA.pressure, stateA.rho)
         hB = Shock.computeTaubAdiabat(stateA, pressureB, eos)
         J_sqr = Shock.computeJ_sqr(stateA.pressure, pressureB, hA, hB, eos)
         J = np.sqrt(np.abs(J_sqr))
         Vs = Shock.computeShockSpeed(stateA, J, sign)
         Ws = computeLorentz(Vs)
-        hA = eos.computeEnthalpy(stateA.rho, stateA.pressure)
+        hA = eos.computeEnthalpy(stateA.pressure, stateA.rho)
 
         return (hA * stateA.lorentz() * stateA.vx + sign * Ws * (pressureB - stateA.pressure) / J) / (
                 hA * stateA.lorentz() + (pressureB - stateA.pressure) * (

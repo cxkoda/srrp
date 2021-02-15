@@ -12,6 +12,7 @@ def relativeSpeed(speedL, speedR):
 def computeVt(invariantA, ux, h):
     return invariantA * np.sqrt((1 - ux ** 2) / (h ** 2 + invariantA ** 2))
 
+
 def computeA(state, eos):
-    h = eos.computeEnthalpy(state.rho, state.pressure)
+    h = eos.computeEnthalpy(state.pressure, state.rho)
     return h * state.lorentz() * state.vt

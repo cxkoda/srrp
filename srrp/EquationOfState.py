@@ -1,15 +1,16 @@
 import numpy as np
 
+
 class IdealEquationOfState:
     def __init__(self, gamma):
         self.gamma = gamma
         self.sigma = gamma / (gamma - 1)
 
-    def computeSpeedOfSound(self, rho, pressure):
-        h = self.computeEnthalpy(rho, pressure)
+    def computeSpeedOfSound(self, pressure, rho):
+        h = self.computeEnthalpy(pressure, rho)
         return np.sqrt(self.gamma * pressure / (h * rho))
 
-    def computeEnthalpy(self, rho, pressure):
+    def computeEnthalpy(self, pressure, rho):
         return 1 + self.sigma * pressure / rho
 
     def computeRho(self, pressure, h):

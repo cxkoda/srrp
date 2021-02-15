@@ -65,20 +65,25 @@ class Solver:
         see Appendix C in Paper
         '''
         h3p = Shock.computeTaubAdiabat(self.state6, self.state1.pressure, self.eos)
-        h6 = self.eos.computeEnthalpy(self.state6.rho, self.state6.pressure)
+        h6 = self.eos.computeEnthalpy(self.state6.pressure, self.state6.rho)
         J23p_sqr = Shock.computeJ_sqr(self.state6.pressure, self.state1.pressure, h6, h3p, self.eos)
         J23p = np.sqrt(np.abs(J23p_sqr))
         return Shock.computeShockSpeed(self.state6, J23p, sign=+1)
 
     def get_du_limit_SS(self):
+        W6_sqr = self.state6.lorentz() ** 2
+        h6 = self.eos.computeEnthalpy(self.state6.pressure, self.state6.rho)
         Vs = self.get_Vs_lim()
-        return (((self.state1.pressure - self.state6.pressure) * (1 - self.state6.vx * Vs)) /
-                ((Vs - self.state6.vx) * (self.h6 * self.state6.rho * self.W6_sqr * (
-                        1 - self.state6.vx ** 2) + self.state1.pressure - self.state6.pressure)))
+        return (
+                (
+                        (self.state1.pressure - self.state6.pressure) * (1 - self.state6.vx * Vs)
+                ) / (
+                        (Vs - self.state6.vx) * (h6 * self.state6.rho * W6_sqr * (
+                        1 - self.state6.vx ** 2) + self.state1.pressure - self.state6.pressure)
+                )
+        )
 
     def get_du_limit_RS(self):
-        # Rarefaction.computeVxb(self.state1, self.state6.pressure, self.eos)
-
         A1_sqr = computeA(self.state1, self.eos) ** 2
         polytrope1 = PolytropicEquationOfState.fromState(self.state1, self.eos.gamma)
 
@@ -132,18 +137,6 @@ class Solver:
 
         self.eos = IdealEquationOfState(gamma)
 
-        self.K1 = PolytropicEquationOfState.computeIsentropicConstant(self.state1, gamma)
-        self.K6 = PolytropicEquationOfState.computeIsentropicConstant(self.state1, gamma)
-        self.W1 = self.state1.lorentz()
-        self.W6 = self.state6.lorentz()
-        self.W1_sqr = self.W1 ** 2
-        self.W6_sqr = self.W6 ** 2
-
-        self.c1 = self.eos.computeSpeedOfSound(self.state1.rho, self.state1.pressure)
-        self.c6 = self.eos.computeSpeedOfSound(self.state6.rho, self.state6.pressure)
-        self.h1 = self.eos.computeEnthalpy(self.state1.rho, self.state1.pressure)
-        self.h6 = self.eos.computeEnthalpy(self.state6.rho, self.state6.pressure)
-
         return self.determine_wave_pattern()
 
     def determine_wave_pattern(self):
@@ -161,6 +154,7 @@ class Solver:
             self.solution_type = 'RR'
             p_min = (self.state6.pressure + eps) * eps
             p_max = self.state1.pressure
+            assert(p_min < p_max)
             p_star = opt.brentq(lambda p: self.get_du_RR(p) - du_0, p_min, p_max)
             polytrope = PolytropicEquationOfState.fromState(self.state6, self.eos.gamma)
             ux_star = Rarefaction.computeVxb(self.state6, p_star, polytrope, sign=+1)
@@ -171,6 +165,7 @@ class Solver:
             self.solution_type = 'RS'
             p_min = self.state6.pressure + eps
             p_max = self.state1.pressure
+            assert(p_min < p_max)
             p_star = opt.brentq(lambda p: self.get_du_RS(p) - du_0, p_min, p_max)
             ux_star = Shock.computeVxb(self.state6, p_star, self.eos, sign=+1)
             solution = getWavefan(self.state1, self.state6, ux_star, p_star, self.eos, Rarefaction, Shock,

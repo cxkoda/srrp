@@ -59,7 +59,7 @@ class Rarefaction:
         self.stateA = stateA
         self.stateB = stateB
         K = PolytropicEquationOfState.computeIsentropicConstant(stateA, eos.gamma)
-        assert (K == PolytropicEquationOfState.computeIsentropicConstant(stateA, eos.gamma))
+        assert (np.abs(K - PolytropicEquationOfState.computeIsentropicConstant(stateB, eos.gamma)) < 1e-10 * K)
 
         self.eos = PolytropicEquationOfState(K, eos.gamma)
         self.sign = sign
