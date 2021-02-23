@@ -47,24 +47,6 @@ class Wavefan:
         condlist.append(regionBoundaries[-1] < xi)
         return condlist
 
-    # @staticmethod
-    # def __getRegionIndex(xi, regionBoundaries):
-    #     condlist = []
-    #     condlist.append(xi <= regionBoundaries[0])
-    #     for left, right in zip(regionBoundaries[:-1], regionBoundaries[1:]):
-    #         condlist.append((left < xi) * (xi <= right))
-    #     condlist.append(regionBoundaries[-1] < xi)
-    #     return condlist
-
-    def getRegIdx(self, x, t):
-        xi = self.get_xi(x, t)
-
-        for idx, interface in enumerate(self.region_interfaces):
-            if interface is not None and xi <= interface:
-                return idx + 1
-
-        return 6
-
     def getRegionIndex(self, xi):
         return np.digitize(xi, self.regionBoundaries) - 1
 
