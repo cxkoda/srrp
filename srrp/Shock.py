@@ -69,6 +69,7 @@ class Shock:
     def __init__(self, stateA, stateB, eos, sign):
         self.stateA = stateA
         self.stateB = stateB
+        self.sign = sign
 
         self.eos = eos
         j = self.computeJ(stateA, stateB, self.eos)

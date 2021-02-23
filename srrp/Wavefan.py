@@ -8,9 +8,36 @@ from .State import State
 class Wavefan:
     def __init__(self, states, waves, reversed=False):
         assert (len(states) == len(waves) + 1)
-        self.states = states
-        self.waves = waves
-        self.regionBoundaries, self.regionStates = Wavefan.__build(states, waves)
+        if not reversed:
+            self.states = states
+            self.waves = waves
+        else:
+            self.states = Wavefan.__reverseStates(states)
+            self.waves = Wavefan.__reverseWaves(waves)
+
+        self.regionBoundaries, self.regionStates = Wavefan.__build(self.states, self.waves)
+
+    @staticmethod
+    def __reverseStates(states):
+        states = list(reversed(states))
+        for state in states:
+            state.vx *= -1
+        return states
+
+    @staticmethod
+    def __reverseWave(wave):
+        if isinstance(wave, Shock):
+            return Shock(wave.stateA, wave.stateB, wave.eos, -wave.sign)
+        elif isinstance(wave, ContactDiscontinuity):
+            return ContactDiscontinuity(-wave.speed, wave.pressure)
+        elif isinstance(wave, Rarefaction):
+            return Rarefaction(wave.stateA, wave.stateB, wave.eos, -wave.sign)
+        else:
+            raise RuntimeError("Unknown wave")
+
+    @staticmethod
+    def __reverseWaves(waves):
+        return [Wavefan.__reverseWave(wave) for wave in reversed(waves)]
 
     @staticmethod
     def __build(states, waves):

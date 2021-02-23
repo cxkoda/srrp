@@ -57,6 +57,7 @@ class Rarefaction:
     def __init__(self, stateA, stateB, eos: IdealEquationOfState, sign):
         self.stateA = stateA
         self.stateB = stateB
+        self.eos = eos
 
         self.sign = sign
         self.isentrope = EntropyConservation.fromState(stateA, eos)

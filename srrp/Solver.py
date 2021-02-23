@@ -1,6 +1,7 @@
 import scipy.optimize as opt
 import scipy.integrate as integrate
 import numpy as np
+import copy
 
 from .Shock import Shock
 from .Rarefaction import Rarefaction
@@ -12,7 +13,8 @@ from .State import State
 from .Wavefan import Wavefan
 
 
-def getWavefan(state1: State, state6: State, cdSpeed, cdPressure, eos: IdealEquationOfState, waveLType, waveRtype, reversed=False):
+def getWavefan(state1: State, state6: State, cdSpeed, cdPressure, eos: IdealEquationOfState, waveLType, waveRtype,
+               reversed=False):
     waveL = waveLType.fromStateAheadAndSpeedPressureBehind(state1, cdSpeed, cdPressure, eos, sign=-1)
     state3 = waveL.stateB
     waveR = waveRtype.fromStateAheadAndSpeedPressureBehind(state6, cdSpeed, cdPressure, eos, sign=+1)
@@ -128,12 +130,14 @@ class Solver:
     def solve(self, stateL, stateR, gamma):
         if stateL.pressure >= stateR.pressure:
             self.reversed = False
-            self.state1 = stateL
-            self.state6 = stateR
+            self.state1 = copy.copy(stateL)
+            self.state6 = copy.copy(stateR)
         else:
             self.reversed = True
-            self.state1 = stateR
-            self.state6 = stateL
+            self.state1 = copy.copy(stateR)
+            self.state6 = copy.copy(stateL)
+            self.state1.vx *= -1
+            self.state6.vx *= -1
 
         self.eos = IdealEquationOfState(gamma)
 
