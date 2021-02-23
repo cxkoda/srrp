@@ -67,11 +67,13 @@ class Wavefan:
             return states
 
     def __str__(self):
-        tmp = [str(self.states[0])]
-        for wave, state in zip(self.waves, self.states):
+        string = 'Wavefan:'
+        tmp = ['', str(self.states[0])]
+        for wave, state in zip(self.waves, self.states[1:]):
             tmp.append(str(wave))
             tmp.append(str(state))
-        return '\n'.join(tmp)
+        string += '\n  - '.join(tmp)
+        return string
 
     def __repr__(self):
         return str(self)
