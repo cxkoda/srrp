@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="srrp",
-    version="1.0.0",
+    version="1.0.1",
     author="David Huber",
     author_email="dave@yomi.eu",
     description="An exact solver for special relativistic riemann problems",
