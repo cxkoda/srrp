@@ -75,8 +75,8 @@ class Rarefaction:
         state = State()
 
         state.pressure = optimize.brentq(lambda pressure:
-                                         self.ux(xi, pressure, self.A, self.eos, self.sign) -
-                                         self.computeVxb(self.stateA, pressure, self.eos, self.sign, A=self.A),
+                                         self.ux(xi, pressure, self.A, self.isentrope, self.sign) -
+                                         self.computeVxb(self.stateA, pressure, self.isentrope, self.sign, A=self.A),
                                          pmin, pmax)
 
         state.rho = self.isentrope.computeRho(state.pressure)
